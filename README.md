@@ -71,6 +71,15 @@ If you want the absolute minimal version of this repo, it's safe to delete
 `src/`, `outputs/`, and `requirements.txt` entirely — the notebook has no
 dependency on any of them.
 
+## Troubleshooting
+
+- **Hit a CUDA out-of-memory error?** Restart the kernel/runtime before trying
+  again — don't just re-run cells. GPU memory from a crashed `.to()` call
+  doesn't reliably get freed within the same session, so a second attempt in
+  the same kernel can fail even when the actual memory requirement would
+  otherwise fit. The notebook includes a memory-check cell near the top that
+  flags this if it happens.
+
 ## Hardware notes
 
 - Free-tier GPUs aren't guaranteed on demand and sessions are capped —
