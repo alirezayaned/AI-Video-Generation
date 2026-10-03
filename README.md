@@ -91,12 +91,19 @@ dependency on any of them.
 
 ## Adding sound
 
-CogVideoX only generates silent video. The notebook's final section covers
-the practical fix: generate a short clip with [MusicGen-small](https://huggingface.co/facebook/musicgen-small)
-(~2GB VRAM, loaded after freeing the video model) and mux it onto the video.
-It's a mood-matched soundtrack, not synced sound effects — MusicGen doesn't
-see what's happening in the frames. Swap in a text-to-speech model (Bark,
-Coqui TTS) in the same spot for narration instead of music.
+CogVideoX only generates silent video. The notebook covers two ways to add
+sound afterward, both by generating audio separately and muxing it onto the
+video:
+
+- **Mood music** — [MusicGen-small](https://huggingface.co/facebook/musicgen-small)
+  (~2GB VRAM) generates a short instrumental clip matching a mood you describe.
+  It doesn't know what's in the frames, so this is a soundtrack, not synced effects.
+- **Narration/voiceover in your own words** — [Kokoro-82M](https://github.com/hexgrad/kokoro)
+  (~82M params, Apache 2.0) is a text-to-speech model: write out whatever you
+  want spoken, and it generates natural-sounding speech to mux onto the clip.
+
+Both run comfortably on a free T4, one at a time (the notebook frees the
+previous model before loading the next).
 
 ## Next steps / ideas
 
