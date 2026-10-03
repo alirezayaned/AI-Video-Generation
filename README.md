@@ -89,6 +89,15 @@ dependency on any of them.
 - CogVideoX-2b generates 49-frame clips (~6 seconds at 8fps) at 720×480,
   which is the resolution/length it was trained on.
 
+## Adding sound
+
+CogVideoX only generates silent video. The notebook's final section covers
+the practical fix: generate a short clip with [MusicGen-small](https://huggingface.co/facebook/musicgen-small)
+(~2GB VRAM, loaded after freeing the video model) and mux it onto the video.
+It's a mood-matched soundtrack, not synced sound effects — MusicGen doesn't
+see what's happening in the frames. Swap in a text-to-speech model (Bark,
+Coqui TTS) in the same spot for narration instead of music.
+
 ## Next steps / ideas
 
 - Swap in [HunyuanVideo-1.5](https://huggingface.co/tencent/HunyuanVideo-1.5)
@@ -97,6 +106,9 @@ dependency on any of them.
 - Wrap `generate_video()` in a [Gradio](https://www.gradio.app/) UI and deploy
   to a free [Hugging Face Space](https://huggingface.co/spaces) for a live, shareable demo.
 - Add image-to-video generation using `CogVideoXImageToVideoPipeline`.
+- Look into joint audio+video models like LTX-2, which generate synced audio
+  and video together — promising, but currently heavy enough to need a GPU
+  well beyond free-tier (80GB+ for the full model).
 
 ## License
 

@@ -6,3 +6,4 @@ sentencepiece>=0.2.0
 imageio>=2.34.0
 imageio-ffmpeg>=0.5.1
 moviepy>=1.0.3
+scipy>=1.11.0
