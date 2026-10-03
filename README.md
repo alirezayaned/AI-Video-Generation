@@ -15,8 +15,10 @@ an open-source (Apache 2.0) video diffusion model — set up to run entirely on
 ## Why this model
 
 Video diffusion models are usually VRAM-hungry (many need 16–80GB+). CogVideoX-2b
-is one of the lightest options available — it runs in as little as ~4GB of VRAM
-with fp16 precision, which comfortably fits a free Colab/Kaggle T4 GPU (16GB VRAM).
+is one of the lightest options available, but it still needs the right memory
+settings: loaded naively it wants ~33GB of VRAM. With CPU offload + VAE tiling
+enabled (the default in this notebook/script) that drops to ~11GB, which fits
+a free Colab/Kaggle T4 (~15GB VRAM) with room to spare.
 
 ## Quickstart
 
@@ -47,9 +49,9 @@ pip install -r requirements.txt
 python src/generate.py --prompt "a cat surfing on a tiny wave" --output outputs/surf_cat.mp4
 ```
 
-Add `--low-vram` if you're running on a GPU smaller than 16GB — it trades
-generation speed for a much smaller memory footprint via CPU offload and VAE
-tiling.
+CPU offload + VAE tiling are on by default (needed for a free-tier GPU). If
+you're running on a large GPU (32GB+) and want faster generation instead, add
+`--fast` to skip offloading.
 
 ## Repo structure
 

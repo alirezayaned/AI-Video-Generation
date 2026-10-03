@@ -7,8 +7,11 @@ callable from the command line so it isn't locked inside a notebook.
 Usage:
     python src/generate.py --prompt "a cat surfing on a tiny wave" --output outputs/surf_cat.mp4
 
-Requires a CUDA GPU (free Colab/Kaggle T4 is enough — CogVideoX-2b fits in
-~4GB VRAM with fp16). See the repo README for setup on Colab/Kaggle.
+Requires a CUDA GPU. CogVideoX-2b needs ~33GB of VRAM with no optimization at
+all, so this script enables CPU offload + VAE tiling by default, which brings
+that down to ~11GB -- small enough to fit a free Colab/Kaggle T4 (~15GB VRAM).
+Pass --fast if you have a larger GPU (32GB+) and want to skip offloading for
+quicker generation. See the repo README for setup on Colab/Kaggle.
 """
 
 import argparse
@@ -21,21 +24,24 @@ from diffusers.utils import export_to_video
 MODEL_ID = "THUDM/CogVideoX-2b"
 
 
-def load_pipeline(low_vram: bool = False) -> CogVideoXPipeline:
+def load_pipeline(fast: bool = False) -> CogVideoXPipeline:
     """Load the CogVideoX-2b pipeline.
 
     Args:
-        low_vram: if True, enables CPU offload + VAE tiling to trade speed
-            for a much smaller memory footprint (useful on GPUs smaller
-            than a free-tier T4).
+        fast: if True, skips CPU offload/tiling and loads the whole model
+            onto the GPU directly. Needs ~33GB VRAM -- only use this on a
+            large GPU (e.g. A100/L4 40GB+). Default (False) uses CPU offload
+            + VAE tiling (~11GB VRAM), which is what a free-tier T4 needs.
     """
     pipe = CogVideoXPipeline.from_pretrained(MODEL_ID, torch_dtype=torch.float16)
 
-    if low_vram:
+    if fast:
+        pipe = pipe.to("cuda")
+    else:
+        # enable_model_cpu_offload() manages device placement itself --
+        # don't also call pipe.to("cuda") on top of it.
         pipe.enable_model_cpu_offload()
         pipe.vae.enable_tiling()
-    else:
-        pipe = pipe.to("cuda")
 
     return pipe
 
@@ -75,7 +81,7 @@ def main() -> None:
     parser.add_argument("--guidance-scale", type=float, default=6.0, help="Classifier-free guidance scale (default: 6.0).")
     parser.add_argument("--fps", type=int, default=8, help="Frames per second for the saved video (default: 8).")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility.")
-    parser.add_argument("--low-vram", action="store_true", help="Enable CPU offload + VAE tiling for smaller GPUs.")
+    parser.add_argument("--fast", action="store_true", help="Skip CPU offload/tiling (needs ~33GB VRAM; only for large GPUs).")
     args = parser.parse_args()
 
     if not torch.cuda.is_available():
@@ -85,7 +91,7 @@ def main() -> None:
             "on Kaggle: Notebook Settings > Accelerator > GPU."
         )
 
-    pipe = load_pipeline(low_vram=args.low_vram)
+    pipe = load_pipeline(fast=args.fast)
     output_path = generate_video(
         pipe,
         prompt=args.prompt,
