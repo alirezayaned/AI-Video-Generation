@@ -1,9 +1,10 @@
 # AI Video Generation (Free-Tier GPU Edition)
 
-A multi-scene text-to-video pipeline — several AI-generated clips stitched
-together with crossfade transitions, each with sound effects generated to
-match that scene's content — built entirely on free Colab/Kaggle GPUs, no
-local GPU required.
+Write **one sentence** describing the video you want. A small local language
+model expands it into a shot list, generates each scene, stitches them
+together with crossfade transitions, and adds sound effects matched to each
+scene's content — all on a free Colab/Kaggle GPU, no local GPU and no API
+key required.
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/alirezayaned/AI-Video-Generation/blob/main/notebooks/cogvideox_text_to_video.ipynb)
 ![License](https://img.shields.io/badge/license-mixed-lightgrey)
@@ -35,6 +36,7 @@ hardware) can currently do.
 
 | Stage | Model | Footprint | License |
 |---|---|---|---|
+| Scene planning (one prompt → shot list) | [Qwen2.5-1.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct) | ~6GB **system RAM**, CPU only — doesn't touch the GPU | Apache 2.0 |
 | Video | [CogVideoX-2b](https://huggingface.co/THUDM/CogVideoX-2b) | ~11GB VRAM (with CPU offload + VAE tiling — loaded naively it wants ~33GB) | Apache 2.0 |
 | Ambient sound effects | [AudioLDM2](https://huggingface.co/cvssp/audioldm2) | ~a few GB VRAM, short clips | **CC-BY-NC-SA-4.0 (non-commercial)** |
 | Narration (optional, replaces ambient sound) | [Kokoro-82M](https://github.com/hexgrad/kokoro) | ~82M params, runs with room to spare | Apache 2.0 |
@@ -59,7 +61,7 @@ repo, link GitHub, or attach any other file on Kaggle.
 1. Go to kaggle.com/code → **New Notebook**.
 2. **File → Import Notebook → Upload** and select `cogvideox_text_to_video.ipynb` (download it from the repo first, or drag it in directly).
 3. In the right sidebar: **Settings → Accelerator → GPU T4 x2**.
-4. Edit the scene list (section 4) — **start with 2-3 scenes first** to confirm everything works before running the full set.
+4. Edit `user_theme` (section 4) to describe your video in one sentence — **set `TARGET_SCENES` to 2-3 first** to confirm everything works before running the full-length version.
 5. **Run All.**
 
 That's the entire setup on either platform — no datasets to attach, no utility
