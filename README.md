@@ -20,13 +20,27 @@ with fp16 precision, which comfortably fits a free Colab/Kaggle T4 GPU (16GB VRA
 
 ## Quickstart
 
-1. Click the **Open in Colab** badge above (or upload `notebooks/cogvideox_text_to_video.ipynb` to Kaggle).
-2. Enable a GPU runtime:
-   - **Colab:** Runtime → Change runtime type → Hardware accelerator → GPU
-   - **Kaggle:** Notebook Settings (sidebar) → Accelerator → GPU T4 x2
-3. Run all cells. The first run downloads the ~4GB model checkpoint, then generates a sample clip.
+**The only file you need is `notebooks/cogvideox_text_to_video.ipynb`.** It's
+fully self-contained — every function it uses is defined in its own cells, so
+it doesn't import anything else from this repo. You don't need to clone the
+repo, link GitHub, or attach any other file on Kaggle.
 
-### Running as a script instead
+**On Colab:** click the **Open in Colab** badge above.
+
+**On Kaggle:**
+1. Go to kaggle.com/code → **New Notebook**.
+2. **File → Import Notebook → Upload** and select `cogvideox_text_to_video.ipynb` (download it from the repo first, or drag it in directly).
+3. In the right sidebar: **Settings → Accelerator → GPU T4 x2**.
+4. **Run All.**
+
+That's the entire setup on either platform — no datasets to attach, no utility
+scripts to add.
+
+### Optional: running as a standalone script instead
+
+If you'd rather run generation outside a notebook (e.g. on your own GPU
+machine), `src/generate.py` has the same pipeline as a CLI. This is entirely
+optional — skip it if the notebook covers what you need.
 
 ```bash
 pip install -r requirements.txt
@@ -42,14 +56,18 @@ tiling.
 ```
 .
 ├── notebooks/
-│   └── cogvideox_text_to_video.ipynb   # Main Colab/Kaggle notebook
+│   └── cogvideox_text_to_video.ipynb   # ← The only file you need. Self-contained, run on Colab/Kaggle.
 ├── src/
-│   └── generate.py                     # Reusable CLI version of the pipeline
+│   └── generate.py                     # Optional: same pipeline as a CLI script, for running outside a notebook
 ├── outputs/
-│   └── samples/                        # A few curated example clips/GIFs (generated files are gitignored)
-├── requirements.txt
+│   └── samples/                        # Optional: a few curated example clips/GIFs (generated files are gitignored)
+├── requirements.txt                    # Optional: only needed for src/generate.py; the notebook installs its own deps in-cell
 └── README.md
 ```
+
+If you want the absolute minimal version of this repo, it's safe to delete
+`src/`, `outputs/`, and `requirements.txt` entirely — the notebook has no
+dependency on any of them.
 
 ## Hardware notes
 
