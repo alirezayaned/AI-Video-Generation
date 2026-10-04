@@ -84,14 +84,51 @@ CPU offload + VAE tiling are on by default (needed for a free-tier GPU). If
 you're running on a large GPU (32GB+) and want faster generation instead, add
 `--fast` to skip offloading.
 
+## Interactive UI (optional)
+
+The whole pipeline (one-sentence prompt → scene planning → per-scene video +
+matching sound → crossfade stitching) is also wrapped in a small Gradio app
+instead of running notebook cells one at a time.
+
+**Easiest: run it from the notebook.** Section 11 of
+`cogvideox_text_to_video.ipynb` writes this same `app.py` to Kaggle's working
+directory and runs it with a public share link (`https://....gradio.live`,
+live only as long as that cell keeps running, ~72h max) — no separate files
+needed, same self-contained-notebook approach as the rest of this project.
+
+**For other targets later:** `app/` has the standalone version plus a
+`Dockerfile`, for running this anywhere with an NVIDIA GPU attached (a cloud
+GPU host, your own machine with `nvidia-container-toolkit`, etc.):
+
+```bash
+cd app
+docker build -t one-prompt-video .
+docker run --gpus all -p 7860:7860 \
+  -v huggingface_cache:/root/.cache/huggingface \
+  one-prompt-video
+```
+
+Then open `http://localhost:7860` (or the host's address, if run remotely).
+The volume mount persists downloaded model weights across container
+restarts — without it, each restart re-downloads CogVideoX-2b + AudioLDM2 +
+Qwen2.5 from scratch. `GRADIO_SHARE=true` as an env var switches it to
+Gradio's own share-link mode instead of binding `0.0.0.0:7860`, same as the
+Kaggle path above — useful if the host doesn't have a port you can expose
+directly.
+
 ## Repo structure
 
 ```
 .
 ├── notebooks/
-│   └── cogvideox_text_to_video.ipynb   # ← The only file you need. Multi-scene + sound, self-contained.
+│   └── cogvideox_text_to_video.ipynb   # ← The only file you need for Kaggle/Colab. Self-contained.
+├── app/
+│   ├── app.py                          # Standalone Gradio UI (same pipeline, for Docker/other targets)
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── .dockerignore
 ├── src/
-│   └── generate.py                     # Optional: single-clip CLI version (no stitching/sound)
+│   └── generate.py                     # Optional: single-clip CLI version (no stitching/sound/UI)
 ├── outputs/
 │   └── samples/                        # Optional: a few curated example clips/GIFs (generated files are gitignored)
 ├── requirements.txt                    # Optional: only needed for src/generate.py; the notebook installs its own deps in-cell
@@ -99,11 +136,24 @@ you're running on a large GPU (32GB+) and want faster generation instead, add
 ```
 
 If you want the absolute minimal version of this repo, it's safe to delete
-`src/`, `outputs/`, and `requirements.txt` entirely — the notebook has no
-dependency on any of them.
+`src/`, `app/`, `outputs/`, and `requirements.txt` entirely — the notebook
+has no dependency on any of them.
 
 ## Troubleshooting
 
+- **`AttributeError: 'GPT2Model' object has no attribute '_update_model_kwargs_for_generation'`
+  when generating ambient sound:** a real, verified upstream incompatibility, not
+  a bug in this project's code. `transformers>=4.52.0` stopped automatically
+  giving every model class (including AudioLDM2's bare `GPT2Model` language
+  model component) generation-mixin methods that AudioLDM2's diffusers pipeline
+  code depends on unconditionally. Pinning old versions to dodge this turns out
+  to conflict with modern Gradio (which needs a newer `huggingface-hub` than
+  the old transformers/diffusers combo supports), so instead the AudioLDM2
+  loading cell replaces that one method (`generate_language_model`) with a
+  self-contained version that doesn't depend on transformers internals at all
+  -- works regardless of which transformers version is installed, no pin
+  needed. If you're calling AudioLDM2 somewhere this patch isn't applied,
+  copy it from that cell before instantiating the pipeline.
 - **Hit a CUDA out-of-memory error?** Restart the kernel/runtime before trying
   again — don't just re-run cells. GPU memory from a crashed `.to()` call
   doesn't reliably get freed within the same session, so a second attempt in
